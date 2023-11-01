@@ -15,9 +15,12 @@ public class Terminal {
     //======================================================================================================================
     private final List<String> history = new ArrayList<>();
 
+
+
+
     //======================================================================================================================
 
-    public void chooseCommandAction(String command, String[] args) {
+    public void chooseCommandAction(String command, String[] args ) {
         switch (command) {
             case "echo":
                 echo(args);
@@ -346,9 +349,16 @@ public class Terminal {
             history.add(input);
 
             if (parser.parse(input)) {
-                String command = parser.getCommandName();
-                String[] args = parser.getArgs();
-                chooseCommandAction(command, args);
+                if(parser.getFoundCommand()){
+
+                    // code
+
+                }
+                else {
+                    String command = parser.getCommandName();
+                    String[] args = parser.getArgs();
+                    chooseCommandAction(command, args);
+                }
             } else {
                 history.remove(history.size()-1);
                 System.out.println("Invalid command");

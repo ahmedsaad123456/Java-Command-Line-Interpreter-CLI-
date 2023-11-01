@@ -1,0 +1,10 @@
+1- pwd
+2- history
+3- history >> test.txt
+4- history > test.txt
+1- pwd
+2- history
+3- history >> test.txt
+1- pwd
+2- history
+3- history >> test.txt
