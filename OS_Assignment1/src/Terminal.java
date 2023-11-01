@@ -1,9 +1,8 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -145,13 +144,19 @@ public class Terminal {
     //======================================================================================================================
 
     public void ls(String[] args) {
+        File currentDir = new File(currentDirectory);
+        String Files[] = currentDir.list();
+        Arrays.sort(Files);
         if(args.length == 0){
-
+            for(String file: Files){
+                System.out.println(file);
+            }
         }
         else if(args[0].equals("-r")){
             if(args.length==1){
-
-
+                for(int i=Files.length-1; i>0 ;i--){
+                    System.out.println(Files[i]);
+                }
             }
             else{
                 history.remove(history.size()-1);
@@ -168,12 +173,19 @@ public class Terminal {
 
     public void mkdir(String[] args){
         if(args.length != 0){
+                for (int i = 0; i < args.length; i++) {
+                    String directoryName = args[i];
+                    String fullPath = getFullPath(directoryName);
+                    File directory = new File(fullPath);
 
-            if (args[0] == "*"){
-
+                    if (!directory.exists()) {
+                        directory.mkdirs();
+                    } else {
+                        history.remove(history.size() - 1);
+                        System.out.println("Error: Directory already exists.");
+                    }
+                }
             }
-
-        }
         else{
             history.remove(history.size()-1);
             System.out.println("Usage: mkdir [messages]");
