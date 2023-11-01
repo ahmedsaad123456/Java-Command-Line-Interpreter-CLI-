@@ -15,7 +15,7 @@ public class Terminal {
     private final Parser parser = new Parser();
 
     //======================================================================================================================
-    private final String currentDirectory = System.getProperty("user.dir");
+    private String currentDirectory = System.getProperty("user.dir");
 
     //======================================================================================================================
     private final List<String> history = new ArrayList<>();
@@ -80,9 +80,13 @@ public class Terminal {
 
     public void echo(String[] args) {
         if (args.length == 1) {
-
+            System.out.println(args[0]);
         } else if (args.length > 1) {
-
+            String message = args[0];
+            for (int i = 1; i < args.length; i++) {
+                message += " " + args[i];
+            }
+            System.out.println(message);
         } else {
             history.remove(history.size()-1);
             System.out.println("Usage: echo [message]");
@@ -93,7 +97,7 @@ public class Terminal {
 
     public void pwd(String[] args) {
         if(args.length ==0){
-
+            System.out.println(currentDirectory);
         }
         else {
             history.remove(history.size()-1);
@@ -102,15 +106,36 @@ public class Terminal {
     }
 
     //======================================================================================================================
-
     public void cd(String[] args) {
         if(args.length == 0){
-
+            String homeDirectory = System.getProperty("user.home");
+            currentDirectory = homeDirectory;
         }
         else if(args.length == 1){
+            if (args[0] == "..") {
+                    File currentDir = new File(currentDirectory);
+            File parentDir = currentDir.getParentFile();
+            if(parentDir != null && parentDir.isDirectory()){
+                currentDirectory = parentDir.getAbsolutePath();
+            }
+            else{
+                history.remove(history.size()-1);
+                System.out.println("Error: Already in the root directory.");
+            }      
+            }
+            else{
+                String directoryName = args[0];
+                String fullPath = getFullPath(directoryName);
+                File directory = new File(fullPath);
 
+                if (directory.exists() && directory.isDirectory()) {
+                    currentDirectory = fullPath;
+                } else {
+                    history.remove(history.size()-1);
+                    System.out.println("Error: Directory does not exist.");
+                }
+            }
         }
-
         else{
             history.remove(history.size()-1);
             System.out.println("Usage: cd [directory]");
