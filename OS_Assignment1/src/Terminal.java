@@ -2,6 +2,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 //error detection
 //2- input the two command > and >>
@@ -44,7 +49,11 @@ public class Terminal {
                 touch(args);
                 break;
             case "cp":
-                cp(args);
+                if (args.length > 0 && args[0].equals("-r")) {
+                    cpr(args);
+                } else {
+                    cp(args);
+                }
                 break;
             case "rm":
                 rm(args);
@@ -135,6 +144,10 @@ public class Terminal {
     public void mkdir(String[] args){
         if(args.length != 0){
 
+            if (args[0] == "*"){
+
+            }
+
         }
         else{
             history.remove(history.size()-1);
@@ -145,8 +158,27 @@ public class Terminal {
     //======================================================================================================================
 
     public void rmdir(String[] args){
-        if (args.length == 1){
+        if (args.length == 1) {
+            String directoryName = args[0];
 
+            if (directoryName.equals("*")) {
+                removeEmptyDirectories(currentDirectory);
+            } else {
+                String fullPath = getFullPath(directoryName);
+                File directory = new File(fullPath);
+
+                if (directory.exists() && directory.isDirectory()) {
+                    if (isDirectoryEmpty(directory)) {
+                        directory.delete();
+                    } else {
+                        history.remove(history.size() - 1);
+                        System.out.println("Error: Directory is not empty.");
+                    }
+                } else {
+                    history.remove(history.size() - 1);
+                    System.out.println("Error: Directory does not exist.");
+                }
+            }
         }
         else {
             history.remove(history.size()-1);
@@ -155,10 +187,60 @@ public class Terminal {
 
     }
 
+    // Get the full path for a given path (handling both relative and absolute paths)
+    private String getFullPath(String path) {
+        File file = new File(path);
+        if (file.isAbsolute()) {
+            return path;
+        } else {
+            return currentDirectory + File.separator + path;
+        }
+    }
+
+    // Check if a directory is empty
+    private boolean isDirectoryEmpty(File directory) {
+        String[] files = directory.list();
+        return files == null || files.length == 0;
+    }
+
+    // Recursively remove empty directories within the specified path
+    private void removeEmptyDirectories(String path) {
+        File currentDir = new File(path);
+        File[] subDirs = currentDir.listFiles(File::isDirectory);
+
+        if (subDirs != null) {
+            for (File subDir : subDirs) {
+                if (isDirectoryEmpty(subDir)) {
+                    subDir.delete();
+                } else {
+                    removeEmptyDirectories(subDir.getAbsolutePath());
+                }
+            }
+        }
+    }
+
+
+
+
     //======================================================================================================================
 
     public void touch(String[] args){
-
+        if(args.length == 1){
+            String filePath = getFullPath(args[0]);
+            try {
+            File file = new File(filePath);
+            if (file.createNewFile()) {
+                System.out.println("File created successfully: " + filePath);
+            } else {
+                System.out.println("File already exists: " + filePath);
+            }
+            } catch (IOException e) {
+                System.out.println("Error creating the file: " + e.getMessage());
+            }
+        } else{
+            history.remove(history.size()-1);
+            System.out.println("Usage: touch [path]");
+        }
     }
 
     //======================================================================================================================
@@ -208,6 +290,56 @@ public class Terminal {
     }
 
     //======================================================================================================================
+
+    public  void cpr(String[] args) {
+        // Ensure that two arguments (source and destination directories) are provided
+        if (args.length != 3) {
+            System.out.println("Usage: cp -r [source_directory] [destination_directory]");
+            return;
+        }
+
+        // Extract source and destination paths from the arguments
+        String source = args[1];
+        String destination = args[2];
+
+        // Create File objects for the source and destination directories
+        File sourceDir = new File(source);
+        File destinationDir = new File(destination);
+
+        // Perform the recursive copy
+        copyRecursive(sourceDir, destinationDir);
+
+        System.out.println("Recursive copy completed successfully.");
+    }
+
+    private  void copyRecursive(File sourceDir, File destinationDir) {
+        if (sourceDir.isDirectory()) {
+            // Create directories in the destination if they don't exist
+            if (!destinationDir.exists()) {
+                destinationDir.mkdirs();
+            }
+
+            // Get a list of files and subdirectories in the source directory
+            File[] files = sourceDir.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    // Recursively copy each file or subdirectory
+                    File destinationFile = new File(destinationDir, file.getName());
+                    copyRecursive(file, destinationFile);
+                }
+            }
+        } else {
+            // Copy files from source to destination
+            try {
+                Files.copy(sourceDir.toPath(), destinationDir.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                System.out.println("Error copying file: " + e.getMessage());
+            }
+        }
+    }
+
+        //======================================================================================================================
 
     public void rm(String[] args){
         if (args.length == 1) {
