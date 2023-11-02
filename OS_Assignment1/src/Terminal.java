@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
 
 //error detection
 //2- input the two command > and >>
@@ -74,6 +74,38 @@ public class Terminal {
                 System.out.println("Unknown command: " + command);
         }
     }
+    //======================================================================================================================
+
+    // command that apply on > and >>
+    public  void chooseSpecialCommandAction(String command , String[] args , String specialChar , String fileName){
+        switch (command) {
+            case "echo":
+                special_echo(args , specialChar , fileName);
+                break;
+            case "pwd":
+                special_pwd(args , specialChar , fileName);
+                break;
+            case "ls":
+                special_ls(args , specialChar , fileName);
+                break;
+            case "cat":
+                special_cat(args , specialChar , fileName);
+                break;
+            case "wc":
+                special_wc(args , specialChar , fileName);
+                break;
+            case "history":
+                special_history(args , specialChar , fileName);
+                break;
+            case "exit":
+                System.exit(0);
+                break;
+            default:
+                history.remove(history.size()-1);
+                System.out.println("Unknown command: " + command);
+        }
+
+    }
 
     //======================================================================================================================
 
@@ -94,6 +126,35 @@ public class Terminal {
 
     //======================================================================================================================
 
+
+
+    // echo with > and >>
+    public void special_echo(String[] args, String specialChar, String fileName) {
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+        if (args.length >= 1) {
+            String message = String.join(" ", args);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                writer.write(message);
+                writer.newLine();
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to write to the file.");
+            }
+        } else {
+            history.remove(history.size()-1);
+            System.out.println("Usage: echo [message]");
+        }
+    }
+
+
+    //======================================================================================================================
+
     public void pwd(String[] args) {
         if(args.length ==0){
             System.out.println(currentDirectory);
@@ -104,23 +165,50 @@ public class Terminal {
         }
     }
 
+
+    //======================================================================================================================
+
+
+    // pwd with > and >>
+    public void special_pwd(String[] args , String specialChar , String fileName) {
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+        if(args.length ==0){
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                writer.write(currentDirectory);
+                writer.newLine();
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to write to the file.");
+            }
+        }
+        else {
+            history.remove(history.size()-1);
+            System.out.println("Usage: pwd");
+        }
+    }
+
     //======================================================================================================================
     public void cd(String[] args) {
         if(args.length == 0){
-            String homeDirectory = System.getProperty("user.home");
-            currentDirectory = homeDirectory;
+            currentDirectory = System.getProperty("user.home");
         }
         else if(args.length == 1){
-            if (args[0] == "..") {
-                    File currentDir = new File(currentDirectory);
-            File parentDir = currentDir.getParentFile();
-            if(parentDir != null && parentDir.isDirectory()){
-                currentDirectory = parentDir.getAbsolutePath();
-            }
-            else{
-                history.remove(history.size()-1);
-                System.out.println("Error: Already in the root directory.");
-            }      
+            if (args[0].equals("..")) {
+                File currentDir = new File(currentDirectory);
+                File parentDir = currentDir.getParentFile();
+                if(parentDir != null && parentDir.isDirectory()){
+                    currentDirectory = parentDir.getAbsolutePath();
+                }
+                else{
+                    history.remove(history.size()-1);
+                    System.out.println("Error: Already in the root directory.");
+                }
             }
             else{
                 String directoryName = args[0];
@@ -144,8 +232,9 @@ public class Terminal {
     //======================================================================================================================
 
     public void ls(String[] args) {
+
         File currentDir = new File(currentDirectory);
-        String Files[] = currentDir.list();
+        String[] Files = currentDir.list();
         Arrays.sort(Files);
         if(args.length == 0){
             for(String file: Files){
@@ -157,6 +246,63 @@ public class Terminal {
                 for(int i=Files.length-1; i>0 ;i--){
                     System.out.println(Files[i]);
                 }
+            }
+            else{
+                history.remove(history.size()-1);
+                System.out.println("Usage: ls -r");
+            }
+        }
+        else{
+            history.remove(history.size()-1);
+            System.out.println("Usage: ls");
+        }
+    }
+
+
+    //======================================================================================================================
+
+
+
+    // ls and ls -r with > and >>
+    public void special_ls(String[] args , String specialChar , String fileName) {
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+        File currentDir = new File(currentDirectory);
+        String[] Files = currentDir.list();
+        Arrays.sort(Files);
+        if(args.length == 0){
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                for(String f: Files){
+                    writer.write(f);
+                    writer.newLine();
+                }
+
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to write to the file.");
+            }
+
+        }
+        else if(args[0].equals("-r")){
+            if(args.length==1){
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                    for(int i=Files.length-1; i>0 ;i--){
+                        writer.write(Files[i]);
+                        writer.newLine();
+                    }
+
+
+                } catch (IOException e) {
+                    history.remove(history.size()-1);
+                    System.out.println("Error: Unable to write to the file.");
+                }
+
+
             }
             else{
                 history.remove(history.size()-1);
@@ -224,6 +370,8 @@ public class Terminal {
 
     }
 
+    //======================================================================================================================
+
     // Get the full path for a given path (handling both relative and absolute paths)
     private String getFullPath(String path) {
         File file = new File(path);
@@ -234,11 +382,17 @@ public class Terminal {
         }
     }
 
+    //======================================================================================================================
+
+
     // Check if a directory is empty
     private boolean isDirectoryEmpty(File directory) {
         String[] files = directory.list();
         return files == null || files.length == 0;
     }
+
+    //======================================================================================================================
+
 
     // Recursively remove empty directories within the specified path
     private void removeEmptyDirectories(String path) {
@@ -297,17 +451,6 @@ public class Terminal {
                 }
                 
             }
-
-            else if(args[0].equals("-r")){
-                if(args.length == 3){
-
-                }
-                else{
-                    history.remove(history.size()-1);
-                    System.out.println("Usage: cp -r directory1 directory2");
-                }
-
-            }
             else{
                 history.remove(history.size()-1);
                 System.out.println("Usage: cp file.txt file1.txt");
@@ -345,6 +488,9 @@ public class Terminal {
         System.out.println("Recursive copy completed successfully.");
     }
 
+    //======================================================================================================================
+
+    // recuresion on directory (cp -r)
     private  void copyRecursive(File sourceDir, File destinationDir) {
         if (sourceDir.isDirectory()) {
             // Create directories in the destination if they don't exist
@@ -372,7 +518,9 @@ public class Terminal {
         }
     }
 
-        //======================================================================================================================
+
+
+    //======================================================================================================================
 
     public void rm(String[] args){
         if (args.length == 1) {
@@ -396,7 +544,8 @@ public class Terminal {
 
     //======================================================================================================================
 
-    public void cat(String[] args){
+
+    public void cat(String[] args ){
         if(args.length==1){
             String fileName = args[0];
             try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -431,6 +580,61 @@ public class Terminal {
         else {
             history.remove(history.size()-1);
             System.out.println("Usage: cat [file1.txt] [file2.txt]");
+
+        }
+
+    }
+    //======================================================================================================================
+
+    // cat with > and >>
+    public void special_cat(String[] args , String specialChar , String fileName){
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+        if(args.length==1){
+            String readFile = args[0];
+            try (BufferedReader br = new BufferedReader(new FileReader(readFile)) ;
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to read the file.");
+            }
+
+        }
+        else if (args.length==2){
+            String readFile1 = args[0];
+            String readFile2 = args[1];
+            try (BufferedReader br1 = new BufferedReader(new FileReader(readFile1));
+                 BufferedReader br2 = new BufferedReader(new FileReader(readFile2));
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                String line;
+                while ((line = br1.readLine()) != null) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+                while ((line = br2.readLine()) != null) {
+                    writer.write(line);
+                    writer.newLine();
+                }
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to read the file.");
+            }
+
+        }
+        else {
+            history.remove(history.size()-1);
+            System.out.println("Usage: cat [file1.txt] [file2.txt]");
+
         }
 
     }
@@ -477,6 +681,72 @@ public class Terminal {
             } catch (IOException e) {
                 history.remove(history.size()-1);
                 System.out.println("Error: Unable to read the file.");
+
+            }
+
+        }
+        else{
+            history.remove(history.size()-1);
+            System.out.println("Usage: wc file.txt");
+        }
+
+    }
+    //======================================================================================================================
+
+    // wc with > and >>
+
+    public void special_wc(String[] args , String specialChar , String fileName){
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+        if(args.length==1){
+            int numOfLines =1 , numOfWords =1 , numOfCharacters =0;
+            String readFile =args[0];
+            try (BufferedReader br = new BufferedReader(new FileReader(readFile)) ;
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                int charCode;
+                boolean inSpace = false;  // To track if we're inside a space sequence
+
+                while ((charCode = br.read()) != -1) {
+                    char character = (char) charCode;
+
+                    // to skip \r and \n
+                    if(charCode != 13 && charCode != 10) {
+                        numOfCharacters++;
+                    }
+
+
+                    // Count lines when a newline character is founded
+                    if (character == '\n') {
+                        numOfLines++;
+                        numOfWords++;
+                    }
+
+                    // Count words when a space character is founded
+                    if (character == ' ') {
+                        if (inSpace) {
+                            numOfWords++;
+                            inSpace = false;
+
+                        }
+                    } else {
+                        inSpace = true;
+                    }
+                }
+
+                writer.write(numOfLines +" " + numOfWords + " " + numOfCharacters +" " +args[0]);
+                writer.newLine();
+
+
+
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to read the file.");
+
             }
 
         }
@@ -504,6 +774,42 @@ public class Terminal {
 
     //======================================================================================================================
 
+    // history with > and >>
+
+    public void special_history(String[] args , String specialChar , String fileName){
+        File file = new File(fileName);
+
+        if (specialChar.equals(">>") && !file.exists()){
+            history.remove(history.size()-1);
+            System.out.println("Error: File does not exist.");
+            return;
+        }
+
+        if(args.length==0){
+
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                for(int i =0 ; i<history.size() ; i++){
+                    writer.write((i+1)+ "- "+ history.get(i));
+                    writer.newLine();
+
+                }
+
+            } catch (IOException e) {
+                history.remove(history.size()-1);
+                System.out.println("Error: Unable to write to the file.");
+            }
+
+
+        }
+        else{
+            history.remove(history.size()-1);
+            System.out.println("Usage: history");
+        }
+
+    }
+
+    //======================================================================================================================
+
     public void run() {
 
         Scanner scanner = new Scanner(System.in);
@@ -514,14 +820,17 @@ public class Terminal {
             history.add(input);
 
             if (parser.parse(input)) {
+                String command = parser.getCommandName();
+                String[] args = parser.getArgs();
                 if(parser.getFoundCommand()){
 
-                    // code
+                    String specialChar = parser.getSpecialChar();
+                    String fileName = parser.getFileName();
 
+                    chooseSpecialCommandAction(command , args , specialChar , fileName);
+                    
                 }
                 else {
-                    String command = parser.getCommandName();
-                    String[] args = parser.getArgs();
                     chooseCommandAction(command, args);
                 }
             } else {

@@ -1,14 +1,14 @@
 import java.util.Arrays;
 
 public class Parser {
-    String commandName;
-    String[] args;
+    private String commandName;
+    private String[] args;
 
-    boolean foundCommand ;
+    private boolean foundCommand ;
 
-    String specialChar;
+    private String specialChar;
 
-    String fileName;
+    private String fileName;
 
     
 
@@ -31,7 +31,8 @@ public class Parser {
         // if contains > or >>
         if(foundCommand){
             if(input.endsWith(">") || input.endsWith(">>")) return false; // if the input ends with > or >> return false
-            tokens = input.split(">+|>>+");           // split string into to string
+            tokens = input.split("\\s+(>|>>)\\s+");            // split string into to string
+
             if (tokens.length !=2) return false;           // if the input != 2 return false
 
             fileName = tokens[1];                           // the second string is the file name
