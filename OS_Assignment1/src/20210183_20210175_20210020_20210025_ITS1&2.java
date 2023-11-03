@@ -1,16 +1,106 @@
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+
+// echo ahmed saad > file.txt test
+
+ class Parser {
+    private String commandName;            // command name
+    private String[] args;         // the arguments of the command
+
+    private boolean foundCommand ;  // for > and >> commands
+
+    private String specialChar;    // equal ">" or ">>"
+
+    private String fileName;   // fileName that the user enter it after > and >>
 
 
-//error detection
-//2- input the two command > and >>
 
-public class Terminal {
+
+    //======================================================================================================================
+
+    public boolean parse(String input) {
+        foundCommand = false;
+        // check if command contains > and >> or not
+        if(input.contains(">")){
+            specialChar = ">";
+            foundCommand= true;
+        }
+        if(input.contains(">>")){
+            specialChar = ">>";
+            foundCommand = true;
+        }
+
+        String[] tokens;
+        // if contains > or >>
+        if(foundCommand){
+            if(input.endsWith(">") || input.endsWith(">>")) return false; // if the input ends with > or >> return false
+            tokens = input.split("\\s+(>|>>)\\s+");            // split string into to string
+
+            if (tokens.length !=2) return false;           // if the input != 2 return false
+
+            fileName = tokens[1];                           // the second string is the file name
+            String[] command = tokens[0].split("\\s+");        // the rest is the command with its args
+
+            commandName = command[0];
+            args = Arrays.copyOfRange(command , 1 , command.length);
+
+        }
+        else {
+
+            tokens = input.split("\\s+");
+            if (tokens.length == 0) return false;
+
+            commandName = tokens[0];
+            args = Arrays.copyOfRange(tokens, 1, tokens.length);
+
+        }
+        return true;
+    }
+
+    //======================================================================================================================
+
+    public String getCommandName() {
+        return commandName;
+    }
+
+
+    //======================================================================================================================
+
+    public String[] getArgs() {
+        return args;
+    }
+
+    //=======================================================================================================================
+
+    public  String getSpecialChar(){
+        return specialChar;
+    }
+
+    //=======================================================================================================================
+
+    public  String getFileName(){
+        return  fileName;
+    }
+
+    //=======================================================================================================================
+
+    public boolean getFoundCommand(){
+        return foundCommand;
+    }
+
+}
+
+
+
+
+//=======================================================================================================================
+
+class Terminal {
     private final Parser parser = new Parser();
 
     //======================================================================================================================
@@ -319,19 +409,19 @@ public class Terminal {
 
     public void mkdir(String[] args){
         if(args.length != 0){
-                for (int i = 0; i < args.length; i++) {
-                    String directoryName = args[i];
-                    String fullPath = getFullPath(directoryName);
-                    File directory = new File(fullPath);
+            for (int i = 0; i < args.length; i++) {
+                String directoryName = args[i];
+                String fullPath = getFullPath(directoryName);
+                File directory = new File(fullPath);
 
-                    if (!directory.exists()) {
-                        directory.mkdirs();
-                    } else {
-                        history.remove(history.size() - 1);
-                        System.out.println("Error: Directory already exists.");
-                    }
+                if (!directory.exists()) {
+                    directory.mkdirs();
+                } else {
+                    history.remove(history.size() - 1);
+                    System.out.println("Error: Directory already exists.");
                 }
             }
+        }
         else{
             history.remove(history.size()-1);
             System.out.println("Usage: mkdir [messages]");
@@ -415,12 +505,12 @@ public class Terminal {
         if(args.length == 1){
             String filePath = getFullPath(args[0]);
             try {
-            File file = new File(filePath);
-            if (file.createNewFile()) {
-                System.out.println("File created successfully: " + filePath);
-            } else {
-                System.out.println("File already exists: " + filePath);
-            }
+                File file = new File(filePath);
+                if (file.createNewFile()) {
+                    System.out.println("File created successfully: " + filePath);
+                } else {
+                    System.out.println("File already exists: " + filePath);
+                }
             } catch (IOException e) {
                 System.out.println("Error creating the file: " + e.getMessage());
             }
@@ -449,7 +539,7 @@ public class Terminal {
                     history.remove(history.size()-1);
                     System.out.println("Error: Unable to read the file.");
                 }
-                
+
             }
             else{
                 history.remove(history.size()-1);
@@ -652,7 +742,7 @@ public class Terminal {
                 while ((charCode = br.read()) != -1) {
                     char character = (char) charCode;
 
-                    // to skip \r and \n 
+                    // to skip \r and \n
                     if(charCode != 13 && charCode != 10) {
                         numOfCharacters++;
                     }
@@ -828,7 +918,7 @@ public class Terminal {
                     String fileName = parser.getFileName();
 
                     chooseSpecialCommandAction(command , args , specialChar , fileName);
-                    
+
                 }
                 else {
                     chooseCommandAction(command, args);
@@ -849,3 +939,4 @@ public class Terminal {
 
     //======================================================================================================================
 }
+
