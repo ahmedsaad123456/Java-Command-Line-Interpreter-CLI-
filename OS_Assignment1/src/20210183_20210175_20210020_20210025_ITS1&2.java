@@ -6,7 +6,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-// echo ahmed saad > file.txt test
+
+// Ahmed Saad Ahmed                20210020
+// Ahmed Adel                      20210025
+// Shahd Sala El-Dein Abd El-Tawab 20210183
+// Shrouk Tarek Ibrahim            20210175
 
  class Parser {
     private String commandName;            // command name
@@ -39,11 +43,13 @@ import java.util.Scanner;
         // if contains > or >>
         if(foundCommand){
             if(input.endsWith(">") || input.endsWith(">>")) return false; // if the input ends with > or >> return false
-            tokens = input.split("\\s+(>|>>)\\s+");            // split string into to string
 
+            tokens = input.split("\\s+(>|>>)\\s+");            // split string into to string
             if (tokens.length !=2) return false;           // if the input != 2 return false
 
             fileName = tokens[1];                           // the second string is the file name
+
+            if(!fileName.endsWith(".txt")) return false;
             String[] command = tokens[0].split("\\s+");        // the rest is the command with its args
 
             commandName = command[0];
@@ -220,7 +226,8 @@ class Terminal {
 
     // echo with > and >>
     public void special_echo(String[] args, String specialChar, String fileName) {
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
@@ -229,7 +236,7 @@ class Terminal {
         }
         if (args.length >= 1) {
             String message = String.join(" ", args);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 writer.write(message);
                 writer.newLine();
             } catch (IOException e) {
@@ -261,7 +268,8 @@ class Terminal {
 
     // pwd with > and >>
     public void special_pwd(String[] args , String specialChar , String fileName) {
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
@@ -269,7 +277,7 @@ class Terminal {
             return;
         }
         if(args.length ==0){
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 writer.write(currentDirectory);
                 writer.newLine();
             } catch (IOException e) {
@@ -355,7 +363,8 @@ class Terminal {
 
     // ls and ls -r with > and >>
     public void special_ls(String[] args , String specialChar , String fileName) {
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
@@ -366,7 +375,7 @@ class Terminal {
         String[] Files = currentDir.list();
         Arrays.sort(Files);
         if(args.length == 0){
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 for(String f: Files){
                     writer.write(f);
                     writer.newLine();
@@ -380,7 +389,7 @@ class Terminal {
         }
         else if(args[0].equals("-r")){
             if(args.length==1){
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                     for(int i=Files.length-1; i>0 ;i--){
                         writer.write(Files[i]);
                         writer.newLine();
@@ -527,8 +536,11 @@ class Terminal {
             if(args.length == 2){
                 String file1Name = args[0];
                 String file2Name = args[1];
-                try (BufferedReader br = new BufferedReader(new FileReader(file1Name));
-                     BufferedWriter bw = new BufferedWriter(new FileWriter(file2Name, false)) ) {
+                String path1 = getFullPath(file1Name);
+                String path2 = getFullPath(file2Name);
+
+                try (BufferedReader br = new BufferedReader(new FileReader(path1));
+                     BufferedWriter bw = new BufferedWriter(new FileWriter(path2, false)) ) {
                     String line;
                     while ((line = br.readLine()) != null) {
                         bw.write(line);
@@ -580,7 +592,7 @@ class Terminal {
 
     //======================================================================================================================
 
-    // recuresion on directory (cp -r)
+    // recursion on directory (cp -r)
     private  void copyRecursive(File sourceDir, File destinationDir) {
         if (sourceDir.isDirectory()) {
             // Create directories in the destination if they don't exist
@@ -638,7 +650,8 @@ class Terminal {
     public void cat(String[] args ){
         if(args.length==1){
             String fileName = args[0];
-            try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String path = getFullPath(fileName);
+            try (BufferedReader br = new BufferedReader(new FileReader(path))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     System.out.println(line);
@@ -678,21 +691,24 @@ class Terminal {
 
     // cat with > and >>
     public void special_cat(String[] args , String specialChar , String fileName){
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
             System.out.println("Error: File does not exist.");
             return;
         }
+
         if(args.length==1){
             String readFile = args[0];
             try (BufferedReader br = new BufferedReader(new FileReader(readFile)) ;
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     writer.write(line);
                     writer.newLine();
+
                 }
             } catch (IOException e) {
                 history.remove(history.size()-1);
@@ -735,7 +751,8 @@ class Terminal {
         if(args.length==1){
             int numOfLines =1 , numOfWords =1 , numOfCharacters =0;
             String fileName =args[0];
-            try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String path = getFullPath(fileName);
+            try (BufferedReader br = new BufferedReader(new FileReader(path))) {
                 int charCode;
                 boolean inSpace = false;  // To track if we're inside a space sequence
 
@@ -786,7 +803,8 @@ class Terminal {
     // wc with > and >>
 
     public void special_wc(String[] args , String specialChar , String fileName){
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
@@ -797,7 +815,7 @@ class Terminal {
             int numOfLines =1 , numOfWords =1 , numOfCharacters =0;
             String readFile =args[0];
             try (BufferedReader br = new BufferedReader(new FileReader(readFile)) ;
-                 BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+                 BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 int charCode;
                 boolean inSpace = false;  // To track if we're inside a space sequence
 
@@ -867,7 +885,8 @@ class Terminal {
     // history with > and >>
 
     public void special_history(String[] args , String specialChar , String fileName){
-        File file = new File(fileName);
+        String path = getFullPath(fileName);
+        File file = new File(path);
 
         if (specialChar.equals(">>") && !file.exists()){
             history.remove(history.size()-1);
@@ -877,7 +896,7 @@ class Terminal {
 
         if(args.length==0){
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName, specialChar.equals(">>")))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, specialChar.equals(">>")))) {
                 for(int i =0 ; i<history.size() ; i++){
                     writer.write((i+1)+ "- "+ history.get(i));
                     writer.newLine();
