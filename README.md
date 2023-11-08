@@ -34,6 +34,19 @@ some error messages without terminating
 
 # Usage 
 1- Run the prgram.
+
 2- Enter commands and press Enter.
+
 3- Enter new commands until enter "exit".
+
+# Contributors
+We would like to thank the following contributors to this project:
+
+- [Ahmed Saad](https://github.com/ahmedsaad123456)
+- [Ahmed Adel](https://github.com/Dola1122)
+- [Shahd Salah](https://github.com/Unicorn2105)
+- [Shrouk Tarek](https://github.com/shroukk7)
+
+Special thanks to everyone who has helped make this project better.
+
 
