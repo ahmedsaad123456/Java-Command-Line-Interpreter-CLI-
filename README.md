@@ -32,7 +32,7 @@ some error messages without terminating
 16. `history`: Displays an enumerated list with the commands you've used in the past.
 
 
-#Usage 
+# Usage 
 1- Run the prgram
 2- Enter commands and press Enter
 3- Enter new commands until enter "exit"
