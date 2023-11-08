@@ -33,7 +33,7 @@ some error messages without terminating
 
 
 # Usage 
-1- Run the prgram
-2- Enter commands and press Enter
-3- Enter new commands until enter "exit"
+1- Run the prgram.
+2- Enter commands and press Enter.
+3- Enter new commands until enter "exit".
 
